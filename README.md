@@ -1,4 +1,4 @@
-# dex_capital_efficiency
+# multi-token-proactive-market-maker
 
 run the code: ```python simulator.py```
 
