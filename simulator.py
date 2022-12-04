@@ -90,68 +90,98 @@ def simulate(config: Dict) -> Tuple[str, str]:
     if save_images:
         # price_impact
         plt.scatter([x[0] for x in price_imp], [x[1] for x in price_imp], s=1)
-        plt.savefig('{d}/images/price_imp/{m}/{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.savefig('{d}/images/{m}/price_imp/{n}.png'.format(d=run_dir, m=market, n=mm_name))
         plt.clf()
         plt.scatter([x[0] for x in proc_price_imp], [x[1] for x in proc_price_imp], s=1)
-        plt.savefig('{d}/images/price_imp/{m}/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.savefig('{d}/images/{m}/price_imp/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
         plt.clf()
         
         # capital efficiency
         plt.scatter([x[0] for x in cap_eff], [x[1] for x in cap_eff], s=1)
-        plt.savefig('{d}/images/cap_eff/{m}/{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.savefig('{d}/images/{m}/cap_eff/{n}.png'.format(d=run_dir, m=market, n=mm_name))
         plt.clf()
         plt.scatter([x[0] for x in proc_cap_eff], [x[1] for x in proc_cap_eff], s=1)
-        plt.savefig('{d}/images/cap_eff/{m}/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.savefig('{d}/images/{m}/cap_eff/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
         plt.clf()
         
         # impermanent loss
         plt.scatter([x[0] for x in imp_gain], [x[1] for x in imp_gain], s=1)
-        plt.savefig('{d}/images/imp_gain/{m}/{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.savefig('{d}/images/{m}/imp_gain/{n}.png'.format(d=run_dir, m=market, n=mm_name))
         plt.clf()
         plt.scatter([x[0] for x in proc_imp_gain], [x[1] for x in proc_imp_gain], s=1)
-        plt.savefig('{d}/images/imp_gain/{m}/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.savefig('{d}/images/{m}/imp_gain/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
         plt.clf()
         plt.scatter([x[0] for x in imp_loss], [x[1] for x in imp_loss], s=1)
-        plt.savefig('{d}/images/imp_loss/{m}/{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.savefig('{d}/images/{m}/imp_loss/{n}.png'.format(d=run_dir, m=market, n=mm_name))
         plt.clf()
         plt.scatter([x[0] for x in proc_imp_loss], [x[1] for x in proc_imp_loss], s=1)
-        plt.savefig('{d}/images/imp_loss/{m}/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.savefig('{d}/images/{m}/imp_loss/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
         plt.clf()
 
     if save_data:
         # price_impact
         pickle.dump(price_imp, \
-            open("{d}/raw_data/price_imp/{m}/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{d}/raw_data/{m}/price_imp/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
         pickle.dump(proc_price_imp, \
-            open("{d}/raw_data/price_imp/{m}/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{d}/raw_data/{m}/price_imp/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
         
         # capital efficiency
         pickle.dump(cap_eff, \
-            open("{d}/raw_data/cap_eff/{m}/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{d}/raw_data/{m}/cap_eff/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
         pickle.dump(proc_cap_eff, \
-            open("{d}/raw_data/cap_eff/{m}/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{d}/raw_data/{m}/cap_eff/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
         
         # impermanent loss
         pickle.dump(imp_gain, \
-            open("{d}/raw_data/imp_gain/{m}/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{d}/raw_data/{m}/imp_gain/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
         pickle.dump(proc_imp_gain, \
-            open("{d}/raw_data/imp_gain/{m}/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{d}/raw_data/{m}/imp_gain/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
         pickle.dump(imp_loss, \
-            open("{d}/raw_data/imp_loss/{m}/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{d}/raw_data/{m}/imp_loss/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
         pickle.dump(proc_imp_loss, \
-            open("{d}/raw_data/imp_loss/{m}/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{d}/raw_data/{m}/imp_loss/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
     
     return price_dir, traffic_dir
 
 if __name__ == '__main__':
-    data_formats = ["images", "stats", "raw_data"]
-    metric_types = ["price_imp", "cap_eff", "imp_gain", "imp_loss"]
-
     runs = input("number of simulation runs: ")
     base_dir = input("output file directory: ")
     save_images = input("store images? (Y/N): ") == "Y"
     save_data = input("store raw data? (Y/N): ") == "Y"
     save_generated = input("save generated price and traffic objects? (Y/N): ") == "Y"
+
+    pretty_metric = {
+        "cap_eff": "capital efficiency",
+        "imp_gain": "impermanent gain",
+        "imp_loss": "impermanent loss",
+        "price_imp": "price impact",
+        "proc_cap_eff": "capital efficiency",
+        "proc_imp_gain": "impermanent gain",
+        "proc_imp_loss": "impermanent loss",
+        "proc_price_imp": "price impact"
+    }
+
+    pretty_xlabel = {
+        "cap_eff": "deviation from market rate",
+        "imp_gain": "percentage gain",
+        "imp_loss": "percentage loss",
+        "price_imp": "percentage change in exchange rate",
+        "proc_cap_eff": "deviation from market rate",
+        "proc_imp_gain": "percentage gain",
+        "proc_imp_loss": "percentage loss",
+        "proc_price_imp": "percentage change in exchange rate"
+    }
+
+    pretty_market = {
+        "double_price_crash": "two token crash",
+        "single_price_crash": "single token crash",
+        "random": "regular market",
+        "volatile_price": "volatile market"
+    }
+
+    data_formats = ["images", "stats", "raw_data"]
+    metric_types = ["price_imp", "cap_eff", "imp_gain", "imp_loss"]
+    full_metric_types = metric_types + ["proc_" + i for i in metric_types]
 
     if not os.path.exists(base_dir):
         os.mkdir(base_dir)
@@ -161,6 +191,7 @@ if __name__ == '__main__':
         if not os.path.exists(run_dir):
             os.mkdir(run_dir)
 
+        stat_dir_dict = {}
         for dir in data_formats:
             if (dir == "stats") or (dir == "images" and save_images) or (dir == "raw_data" and save_data):
                 combined_dir = os.path.join(run_dir, dir)
@@ -168,24 +199,26 @@ if __name__ == '__main__':
                     os.mkdir(combined_dir)
                 
                 if dir != "stats":
-                    for stat in metric_types:
-                        stat_dir = os.path.join(combined_dir, stat)
-                        if not os.path.exists(stat_dir):
-                            os.mkdir(stat_dir)
-
-                        for market in os.listdir("config"):
-                            market_dir = os.path.join(stat_dir, market)
-                            if not os.path.exists(market_dir):
-                                os.mkdir(market_dir)
-                else:
                     for market in os.listdir("config"):
                         market_dir = os.path.join(combined_dir, market)
                         if not os.path.exists(market_dir):
                             os.mkdir(market_dir)
+
+                        for stat in metric_types:
+                            stat_dir = os.path.join(market_dir, stat)
+                            if not os.path.exists(stat_dir):
+                                os.mkdir(stat_dir)
+                else:
+                    for market in os.listdir("config"):
+                        market_dir = os.path.join(combined_dir, market)
+                        if not os.path.exists(market_dir):
+                            stat_dir_dict[market] = market_dir
+                            os.mkdir(market_dir)         
         
         for market in os.listdir("config"):
             market_path = os.path.join("config", market)
             price_dir, traffic_dir = None, None
+
             for env in os.listdir(market_path):
                 mm_name = env[:-5]
                 with open(os.path.join(market_path, env), 'r') as f:
@@ -196,3 +229,42 @@ if __name__ == '__main__':
             if not save_generated:
                 os.remove(price_dir)
                 os.remove(traffic_dir)
+
+        if save_images:
+            for market in stat_dir_dict:
+                for metric in full_metric_types:
+                    boxes = []
+                    stats_dir = stat_dir_dict[market]
+                    for mm in os.listdir(stats_dir):
+                        with open(os.path.join(stats_dir, mm), "r") as f:
+                            all_info = json.loads(f.read())
+                        
+                        if len(all_info) and metric in all_info:
+                            info = all_info[metric]
+                            if len(info):
+                                if not("c" in mm and ("cap" in metric or "price" in metric)):
+                                    boxes.append({
+                                        'label' : mm[:-5].replace("_0", ", k=0."),
+                                        'whislo': info["quart_1"],
+                                        'q1'    : info["quart_1"],
+                                        'med'   : info["med"],
+                                        'q3'    : info["quart_3"],
+                                        'whishi': info["max"],
+                                        'fliers': [] 
+                                    })
+                    
+                    data_type = "raw"
+                    if "proc" in metric:
+                        data_type = "processed"
+                    save_dir = "{}/run_{}/images/{}/{}/aggregated_{}.png".format(
+                        base_dir, i, market, metric.replace("proc_", ""), metric)
+
+                    _, ax = plt.subplots()
+                    ax.bxp(boxes, vert=False, showfliers=False, patch_artist=True)
+                    ax.set_title("run {}, {}: {} {}".format(i, pretty_market[market], data_type, pretty_metric[metric]))
+                    ax.set_xlabel(pretty_xlabel[stat])
+                    ax.set_ylabel("market makers")
+                    ax.set_xscale("log")
+                    plt.tight_layout()
+                    plt.savefig(save_dir)
+                    plt.close()
