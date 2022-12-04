@@ -1,5 +1,4 @@
 {
-	"path": "data",
     "initializer": {
 		"init_kwargs": {
 			"constant": 100000,
