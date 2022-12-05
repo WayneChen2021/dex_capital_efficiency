@@ -70,7 +70,7 @@ note: This is a continuation of a group project from summer 2022, and I am now w
 The proactive market maker, or PMM, was first implemented by [DODO Exchange](https://docs.dodoex.io/english/dodo-academy/pmm-overview/the-mathematical-principle-of-pmm). PMM generalizes the commonly used constant product market maker by introducing a parameter $k$ to change the "flatness" of the pricing curve and splitting the pool state curve into 2. Coupled with access to a price oracle, this gave PMM several novel features:
 
 1. Can change the pricing curve's "slope" to increase capital efficiency (low $k$, near 0) or to counter volatility (high $k$, near 1)
-2. Can set an equilibrium pool state/point where the exchange rate is given by the market rate (i.e. the rate derived from dividing the prices of 2 tokens)
+2. Can set an equilibrium pool state/point where the exchange rate is given by the market rate (i.e. the rate derived from dividing the prices of 2 tokens), thus ensuring most swaps happen near market rates
 3. Can change the equilibrium point depending on the pool state and current market exchange rate to reduce impermanent loss
 4. Single token type deposits for liquidity providers
 
@@ -98,7 +98,7 @@ raw results            |  processed results (remove outliers)
 
 These are the results represented as box and whiskers plots. The minimums were removed to make the plots more readable since they usually were very close to 0. CSMM and MCSMM were also removed, as they always process swaps at market rates. Capital efficiency was determined by finding the magnitude of percentage difference between the market rate and the swap rate.
 
-As expected, combining liquidity spread out over many two-token pools into one large source per token increases capital efficiency. This is true when comparing all pairwise-token and multi-token pairs. This confirms the first hypothesis.
+As expected, combining liquidity spread out over many two-token pools into one large source per token increases capital efficiency. This is true when comparing all pairwise-token and multi-token pairs. Additionally, we see the effects of the $k$ parameter and the settable equilibrium point translate over to the multi-token setting. Specifically, lower $k$ improves capital efficiency in both PMM and MPMM, and MPMM is more performant than MAMM. This confirms the first hypothesis.
 
 We can also observe a similar pattern looking at the price impact data.
 
@@ -118,4 +118,18 @@ raw results            |  processed results (remove outliers)
 ![figure](./runs/run_0/images/random/imp_loss/aggregated_imp_loss.png)  |  ![figure](./runs/run_0/images/random/imp_loss/aggregated_proc_imp_loss.png)
 ![figure](./runs/run_0/images/volatile_price/imp_loss/aggregated_imp_loss.png)  |  ![figure](./runs/run_0/images/volatile_price/imp_loss/aggregated_proc_imp_loss.png)
 
-TODO
+Impermanent loss was calculated by measuring the proportionate magnitude of all negative changes in token balances with respect to initial balances. This was calculated for each token type individually and after each swap. The results show that most multi-token variants perform slightly worse than their single-token counterparts, at least when comparing medians. That said, the multi-token platforms do have less variance.
+
+An interesting scenario is to look at impermanent loss when a token's price suddenly drops.
+
+AMM            |  MAMM
+:-------------------------:|:-------------------------:
+![figure](./runs/run_0/images/single_price_crash/imp_loss/amm.png)  |  ![figure](./runs/run_0/images/single_price_crash/imp_loss/mamm.png)
+
+CSMM            |  MCSMM
+:-------------------------:|:-------------------------:
+![figure](./runs/run_0/images/single_price_crash/imp_loss/csmm.png)  |  ![figure](./runs/run_0/images/single_price_crash/imp_loss/mcsmm.png)
+
+PMM            |  MPMM
+:-------------------------:|:-------------------------:
+![figure](./runs/run_0/images/single_price_crash/imp_loss/pmm_050.png)  |  ![figure](./runs/run_0/images/single_price_crash/imp_loss/mpmm_050.png)
