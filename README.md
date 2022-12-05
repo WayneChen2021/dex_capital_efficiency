@@ -47,7 +47,7 @@ note: This is a continuation of a group project from summer 2022, and I am now w
         "init_kwargs": {
             "mean": "// average % of price change",
             "stdv": "// stdv of price change",
-            "change_probability": "// probability of price",
+            "change_probability": "// probability of price changing",
             "batches": "num of batches; should match with 'shape' in 'traffic'"
         }
     },
@@ -63,4 +63,6 @@ note: This is a continuation of a group project from summer 2022, and I am now w
 }
 ```
 
-2. enter command: ```python simulator.py```
+2. ```python simulator.py```
+
+## Analyzing results
