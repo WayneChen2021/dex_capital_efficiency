@@ -133,3 +133,9 @@ CSMM            |  MCSMM
 PMM            |  MPMM
 :-------------------------:|:-------------------------:
 ![figure](./runs/run_0/images/single_price_crash/imp_loss/pmm_050.png)  |  ![figure](./runs/run_0/images/single_price_crash/imp_loss/mpmm_050.png)
+
+We notice that the multi-token market maker variants experience significant losses across all token types, while this only occurrs for a select few pools in the pairwise token pool variants. This is simply because the pairwise-token format protects all token pools that do not contain the crash type from the effects of a crash whereas this protection does not exist in the multi-token setting. Another observation is that multi-token pools take longer to reach the maximum impermanent loss. This is explained by the fact that multi-token market makers have more effective liquidity such that proportionate losses take longer to accumulate.
+
+## Other observations
+
+TODO
