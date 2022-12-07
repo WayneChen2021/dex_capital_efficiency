@@ -80,75 +80,144 @@ def simulate(config: Dict) -> Tuple[str, str]:
         "proc_price_imp": proc_price_imp_dict
     }
     all_info_str = json.dumps(all_info_dict, indent=4)
-    print("data for {n} on {m}:".format(n=mm_name, m=market))
+    print("data for {} on {}:".format(mm_name, pretty_market[market]))
     print(all_info_str)
 
     # write stats
-    with open("{d}/stats/{m}/{n}.json".format(d=run_dir, m=market, n=mm_name), "w") as f:
+    with open("{}/stats/{}/{}.json".format(run_dir, market, mm_name), "w") as f:
         f.write(all_info_str)
     
     if save_images:
         # price_impact
         plt.scatter([x[0] for x in price_imp], [x[1] for x in price_imp], s=1)
-        plt.savefig('{d}/images/{m}/price_imp/{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.title("run {}, {}: {} price impact".format(i, pretty_market[market], mm_name))
+        plt.xlabel("% of input token pool drained")
+        plt.ylabel("% change in swap rate to repeat swap")
+        plt.tight_layout()
+        plt.savefig('{}/images/{}/price_imp/{}.png'.format(run_dir, market, mm_name))
         plt.clf()
+        
         plt.scatter([x[0] for x in proc_price_imp], [x[1] for x in proc_price_imp], s=1)
-        plt.savefig('{d}/images/{m}/price_imp/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.title("run {}, {}: {} processed price impact".format(i, pretty_market[market], mm_name))
+        plt.xlabel("% of input token pool drained")
+        plt.ylabel("% change in swap rate to repeat swap")
+        plt.tight_layout()
+        plt.savefig('{}/images/{}/price_imp/proc_{}.png'.format(run_dir, market, mm_name))
         plt.clf()
         
         # capital efficiency
         plt.scatter([x[0] for x in cap_eff], [x[1] for x in cap_eff], s=1)
-        plt.savefig('{d}/images/{m}/cap_eff/{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.title("run {}, {}:{} capital efficiency".format(i, pretty_market[market], mm_name))
+        plt.xlabel("% of input token pool drained")
+        plt.ylabel("% deviation from market rate")
+        plt.tight_layout()
+        plt.savefig('{}/images/{}/cap_eff/{}.png'.format(run_dir, market, mm_name))
         plt.clf()
+        
         plt.scatter([x[0] for x in proc_cap_eff], [x[1] for x in proc_cap_eff], s=1)
-        plt.savefig('{d}/images/{m}/cap_eff/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.title("run {}, {}: {} processed capital efficiency".format(i, pretty_market[market], mm_name))
+        plt.xlabel("% of input token pool drained")
+        plt.ylabel("% change in swap rate to repeat swap")
+        plt.tight_layout()
+        plt.savefig('{}/images/{}/cap_eff/proc_{}.png'.format(run_dir, market, mm_name))
         plt.clf()
         
         # impermanent loss
         plt.scatter([x[0] for x in imp_gain], [x[1] for x in imp_gain], s=1)
-        plt.savefig('{d}/images/{m}/imp_gain/{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.title("run {}, {}: {} impermanent gain".format(i, pretty_market[market], mm_name))
+        plt.xlabel("swap number")
+        plt.ylabel("% increase in token balance w.r.t. start")
+        plt.tight_layout()
+        plt.savefig('{}/images/{}/imp_gain/{}.png'.format(run_dir, market, mm_name))
         plt.clf()
+        
         plt.scatter([x[0] for x in proc_imp_gain], [x[1] for x in proc_imp_gain], s=1)
-        plt.savefig('{d}/images/{m}/imp_gain/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.title("run {}, {}: {} processed impermanent gain".format(i, pretty_market[market], mm_name))
+        plt.xlabel("swap number")
+        plt.ylabel("% increase in token balance w.r.t. start")
+        plt.tight_layout()
+        plt.savefig('{}/images/{}/imp_gain/proc_{}.png'.format(run_dir, market, mm_name))
         plt.clf()
+        
         plt.scatter([x[0] for x in imp_loss], [x[1] for x in imp_loss], s=1)
-        plt.savefig('{d}/images/{m}/imp_loss/{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.title("run {}, {}: {} impermanent loss".format(i, pretty_market[market], mm_name))
+        plt.xlabel("swap number")
+        plt.ylabel("% decrease in token balance w.r.t. start")
+        plt.tight_layout()
+        plt.savefig('{}/images/{}/imp_loss/{}.png'.format(run_dir, market, mm_name))
         plt.clf()
+        
         plt.scatter([x[0] for x in proc_imp_loss], [x[1] for x in proc_imp_loss], s=1)
-        plt.savefig('{d}/images/{m}/imp_loss/proc_{n}.png'.format(d=run_dir, m=market, n=mm_name))
+        plt.title("run {}, {}: {} processed impermanent loss".format(i, pretty_market[market], mm_name))
+        plt.xlabel("swap number")
+        plt.ylabel("% decrease in token balance w.r.t. start")
+        plt.tight_layout()
+        plt.savefig('{}/images/{}/imp_loss/proc_{}.png'.format(run_dir, market, mm_name))
         plt.clf()
 
     if save_data:
         # price_impact
         pickle.dump(price_imp, \
-            open("{d}/raw_data/{m}/price_imp/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{}/raw_data/{}/price_imp/{}.pkl".format(run_dir, market, mm_name), "wb"))
         pickle.dump(proc_price_imp, \
-            open("{d}/raw_data/{m}/price_imp/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{}/raw_data/{}/price_imp/proc_{}.pkl".format(run_dir, market, mm_name), "wb"))
         
         # capital efficiency
         pickle.dump(cap_eff, \
-            open("{d}/raw_data/{m}/cap_eff/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{}/raw_data/{}/cap_eff/{}.pkl".format(run_dir, market, mm_name), "wb"))
         pickle.dump(proc_cap_eff, \
-            open("{d}/raw_data/{m}/cap_eff/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{}/raw_data/{}/cap_eff/proc_{}.pkl".format(run_dir, market, mm_name), "wb"))
         
         # impermanent loss
         pickle.dump(imp_gain, \
-            open("{d}/raw_data/{m}/imp_gain/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{}/raw_data/{}/imp_gain/{}.pkl".format(run_dir, market, mm_name), "wb"))
         pickle.dump(proc_imp_gain, \
-            open("{d}/raw_data/{m}/imp_gain/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{}/raw_data/{}/imp_gain/proc_{}.pkl".format(run_dir, market, mm_name), "wb"))
         pickle.dump(imp_loss, \
-            open("{d}/raw_data/{m}/imp_loss/{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{}/raw_data/{}/imp_loss/{}.pkl".format(run_dir, market, mm_name), "wb"))
         pickle.dump(proc_imp_loss, \
-            open("{d}/raw_data/{m}/imp_loss/proc_{n}.pkl".format(d=run_dir, m=market, n=mm_name), "wb"))
+            open("{}/raw_data/{}/imp_loss/proc_{}.pkl".format(run_dir, market, mm_name), "wb"))
     
     return price_dir, traffic_dir
 
+def yes_no(query: str) -> bool:
+    """
+    Runs a query for input that should receive a Y/N for response
+
+    Parameters:
+    1. query: query string
+
+    Returns:
+    1. whether or not the response was 'Y'
+    """
+    dict_check = {"Y": True, "N": True}
+    while True:
+        try:
+            output = input(query)
+            _ = dict_check[output]
+        except KeyError:
+            print("Please enter 'Y' or 'N'")
+            continue
+        else:
+            return output == 'Y'
+
 if __name__ == '__main__':
-    runs = input("number of simulation runs: ")
+    while True:
+        try:
+            runs = int(input("number of simulation runs: "))
+            _ = 1 / max(0, runs)
+        except ValueError:
+            print("Please enter a valid integer")
+            continue
+        except ZeroDivisionError:
+            print("Please enter a positive integer")
+            continue
+        else:
+            break
     base_dir = input("output file directory: ")
-    save_images = input("store images? (Y/N): ") == "Y"
-    save_data = input("store raw data? (Y/N): ") == "Y"
-    save_generated = input("save generated price and traffic objects? (Y/N): ") == "Y"
+    save_images = yes_no("store images? (Y/N): ")
+    save_data = yes_no("store raw data? (Y/N): ")
+    save_generated = yes_no("save generated price and traffic objects? (Y/N): ")
 
     pretty_metric = {
         "cap_eff": "capital efficiency",
@@ -262,7 +331,7 @@ if __name__ == '__main__':
                     _, ax = plt.subplots()
                     ax.bxp(boxes, vert=False, showfliers=False, patch_artist=True)
                     ax.set_title("run {}, {}: {} {}".format(i, pretty_market[market], data_type, pretty_metric[metric]))
-                    ax.set_xlabel(pretty_xlabel[stat])
+                    ax.set_xlabel(pretty_xlabel[metric])
                     ax.set_ylabel("market makers")
                     ax.set_xscale("log")
                     plt.tight_layout()
