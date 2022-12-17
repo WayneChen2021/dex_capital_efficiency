@@ -3,24 +3,20 @@ import random
 from copy import deepcopy
 
 class Initializer():
-    def __init__(self, constant: float, k: float, cap_limit: float, random_k: str = "False"):
+    def __init__(self, constant: float, cap_limit: float):
         """
         Calculates a fair starting balance for all market makers (all token pools
         start at an equilibrium point)
 
         Parameters:
         1. constant: "size" each token balance should be
-        2. k: k value for each pool
-        3. cap_limit: maximum market cap of any token
-        4. random_k: whether or not to use random k for each pool
+        2. cap_limit: maximum market cap of any token
         """
         self.constant = constant
-        self.k = k
         self.cap_limit = cap_limit
-        self.random_k = random_k == "True"
         self.traffic_info, self.price_gen_info = None, None
-        self.pairwise_pools, self.pairwise_infos, self.single_pools, \
-            self.single_infos, self.crash_types = [], [], [], [], []
+        self.pairwise_pools, self.pairwise_infos, self.single_pools, self.single_infos, \
+            self.crash_types, self.monitors = [], [], [], [], [], []
     
     def configure_tokens(self, token_infos: Dict[str, Dict[str, Dict[str, float]]]):
         """
@@ -49,7 +45,7 @@ class Initializer():
             "price_gen": {
                 "LUNA": {
                     "start": 83,
-                    "mean": -0.0005,
+                    "mean": -0.00075,
                     "stdv": 0.00025,
                     "change_probability": 0.99
                 },
@@ -88,13 +84,13 @@ class Initializer():
             price_info[i] = self.constant / respective_prices[i]
         price_info[base] = self.constant
 
-        num_pools = num_tokens / 2
+        num_pools = num_tokens * (num_tokens - 1) / 2
         self.single_pools = list(price_info.keys())
         self.single_infos = [[i] for i in price_info.values()]
         token_k = {}
         
         for i, tok1 in enumerate(tokens):
-            for tok2 in tokens[i:]:
+            for tok2 in tokens[i+1:]:
                 pool = [tok1, tok2]
                 reverse_pool = [tok2, tok1]
                 self.pairwise_pools.append(pool)
@@ -105,12 +101,8 @@ class Initializer():
                 self.pairwise_infos.append(pool_balances)
                 self.pairwise_infos.append(reverse_pool_balances)
 
-                if self.random_k:
-                    token_k[tok1] = random.randrange(1, 1000) / 1000
-                    token_k[tok2] = random.randrange(1, 1000) / 1000
-                else:
-                    token_k[tok1] = self.k
-                    token_k[tok2] = self.k
+                token_k[tok1] = random.randrange(1, 1000) / 1000
+                token_k[tok2] = random.randrange(1, 1000) / 1000
         
         for i, pool in enumerate(self.pairwise_pools):
             self.pairwise_infos[i].append((token_k[pool[0]] + token_k[pool[1]]) / 2)
@@ -120,8 +112,9 @@ class Initializer():
 
     def get_stats(self
     ) -> Tuple[List[Tuple[str, str]], List[Tuple[float, float, float]],
-        List[str], List[Tuple[float, float]], Dict[str, Dict[str, float]],
-        Dict[str, Dict[str, float]], List[str]]:
+        List[str], List[Tuple[float, float]],
+        Dict[str, Dict[str, float]], Dict[str, Dict[str, float]],
+        List[str], float]:
         """
         Get initialization information for market makers
 
@@ -136,5 +129,5 @@ class Initializer():
         8. maximum token market cap
         """
         
-        return self.pairwise_pools, self.pairwise_infos, self.single_pools, \
-            self.single_infos, self.traffic_info, self.price_gen_info, self.crash_types, self.cap_limit
+        return self.pairwise_pools, self.pairwise_infos, self.single_pools, self.single_infos, \
+        self.traffic_info, self.price_gen_info, self.crash_types, self.cap_limit

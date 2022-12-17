@@ -1,0 +1,11 @@
+{
+	"type": "MAMM",
+	"simulate_kwargs": {
+		"reset_tx": "False",
+		"arb": "True",
+		"arb_actions": 1,
+		"multi_token": "True",
+		"k": -1,
+		"multi_monitors": ["BTC"]
+	  }
+}

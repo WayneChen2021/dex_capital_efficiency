@@ -14,14 +14,14 @@ class OutputTx:
         Information associated with each swap for computing metrics
 
         Parameters:
-        in_type: input token name
-        out_type: output token name
-        inpool_init_val: amount of input token originally in market maker's liquidiy pool
-        outpool_init_val: amount of output token originally in market maker's liquidiy pool
-        inpool_after_val: amount of input token in market maker's liquidiy pool after swap
-        outpool_after_val: amount of output token in market maker's liquidiy pool after swap
-        market_rate: exchange rate in market outside market maker
-        after_rate: exchange rate inside market maker of swap types after swap occurs
+        1. in_type: input token name
+        2. out_type: output token name
+        3. inpool_init_val: amount of input token originally in market maker's liquidiy pool
+        4. outpool_init_val: amount of output token originally in market maker's liquidiy pool
+        5. inpool_after_val: amount of input token in market maker's liquidiy pool after swap
+        6. outpool_after_val: amount of output token in market maker's liquidiy pool after swap
+        7. market_rate: exchange rate in market outside market maker
+        8. after_rate: exchange rate inside market maker of swap types after swap occurs
         """
         self.in_type = in_type
         self.out_type = out_type

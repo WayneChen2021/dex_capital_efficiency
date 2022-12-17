@@ -1,4 +1,5 @@
 import numpy as np
+import statistics
 from typing import List, Tuple, Dict
 from outputtx import OutputTx
 from poolstatus import PoolStatusInterface
@@ -70,126 +71,276 @@ def get_stats(data: List[float]) -> Dict[str, float]:
         stat_dict["quart_1"],  stat_dict["quart_3"] = q1, q3
         stat_dict["min"], stat_dict["max"] = sorted_data[0], sorted_data[-1]
         stat_dict["stdv"] = np.std(sorted_data)
+        stat_dict["counts"] = len(data)
 
     return stat_dict
 
-def price_impact(output: List[List[OutputTx]], crash_types: List[str]
-) -> Tuple[List[Tuple[float, float]], Dict[str, float], List[Tuple[float, float]], Dict[str, float]]:
+def __match_monitor(output: OutputTx, monitors: set[str]) -> str:
     """
-    Measures magnitude of price impact for transaction pairs before and after 
-    transactions' execution as function of proportion of output token balance 
-    removed.
+    Returns 'True' if the OutputTx should be monitored
 
-    Lower magnitudes are better since they indicate a greater ability to handle
-    large volume swaps. It's also expected that as proportionately more of the
-    output token balance is drained, the magnitude is higher.
+    Parameters:
+    1. output: OutputTx to gauge
+    2. monitors: tokens or pools to monitor
+
+    Returns
+    1. pool or token if output should be monitored
+    """
+    for test in monitors:
+        break
+    tok1, tok2 = output.in_type, output.out_type
+    if "," in test:
+        if tok1 <= tok2:
+            val = tok1 + ", " + tok2
+            if val in monitors:
+                return val
+        else:
+            val = tok2 + ", " + tok1
+            if val in monitors:
+                return val
+    
+    if tok1 in monitors:
+        return tok1
+    if tok2 in monitors:
+        return tok2
+
+    return None
+
+def price_impact(output: List[List[OutputTx]], crash_types: List[str], monitors: set[str]
+) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float]],
+    List[Tuple[float, float]], List[Tuple[float, float]], 
+    Dict[str, float], Dict[str, float], Dict[str, float], Dict[str, float], Dict]:
+    """
+    Measures price impact for transaction pairs before and after transactions' 
+    execution as function of proportion of output token balance removed. Computes
+    <swap rate after transaction> / <transaction swap rate>.
 
     Parameters:
     1. output: swap metrics
     2. crash_types: what token types crashed in price (are excluded from metrics)
+    3. monitors: tokens or pools to monitor
 
     Returns:
-    1. magnitude of percentage changes of exchange rates after each swap
-    2. statistics of results
-    3. magnitude of percentage changes of exchange rates after each swap with outliers
-    removed
-    4. statistics of results with outliers removed
+    1. rate ratios for every swap, when ratios > 1
+    2. rate ratios for every swap, when ratios <= 1
+    3. rate ratios for every swap, when ratios > 1, outliers removed
+    4. rate ratios for every swap, when ratios <= 1, outliers removed
+    5. statistics of swaps when rate ratios > 1
+    6. statistics of swaps when rate ratios <= 1
+    7. statistics of swaps when rate ratios > 1, outliers removed
+    8. statistics of swaps when rate ratios <= 1, outliers removed
+    9. statistics and rate ratios for tokens or pools to be monitored
     """
-    result = []
+    pos_results = []
+    neg_results = []
+    monitor_results = {i : [[],[],[],[]] for i in monitors}
     
     for lst in output:
         for info in lst:
-            if info.outpool_after_val < info.outpool_init_val and \
-                 not info.in_type in crash_types and info.after_rate >= 0:
-                try:
-                    rate = (info.inpool_after_val - info.inpool_init_val) / \
+            try: 
+                rate = (info.inpool_after_val - info.inpool_init_val) / \
                         (info.outpool_init_val - info.outpool_after_val)
-                    drained = 1 - info.outpool_after_val / info.outpool_init_val
-                    result.append([drained, abs((info.after_rate - rate) / rate)])
-                except:
-                    continue
-    
-    processed_result = remove_outliers(result, OUTLIER_PERC)
-    return result, get_stats(result), processed_result, get_stats(processed_result)
+                drained = 1 - info.outpool_after_val / info.outpool_init_val
+                rate = info.after_rate / rate
+                result = [drained, abs(rate)]
 
-def capital_efficiency(output: List[List[OutputTx]], crash_types: List[str]
-) -> Tuple[List[Tuple[float, float]], Dict[str, float], List[Tuple[float, float]], Dict[str, float]]:
+                if info.outpool_after_val < info.outpool_init_val and \
+                    not info.in_type in crash_types and info.after_rate >= 0:
+                    if rate > 1:
+                        pos_results.append(result)
+                    else:
+                        neg_results.append(result)
+                
+                    monitor = __match_monitor(info, monitors)
+                    if monitor != None:
+                        if rate > 1:
+                            monitor_results[monitor][0].append(result)
+                        else:
+                            monitor_results[monitor][1].append(result)
+            except ZeroDivisionError:
+                continue
+
+    proc_pos = remove_outliers(pos_results, OUTLIER_PERC)
+    proc_neg = remove_outliers(neg_results, OUTLIER_PERC)
+
+    for v in monitor_results.values():
+        pos, neg = v[0], v[1]
+        v[2], v[3] = remove_outliers(pos, OUTLIER_PERC), remove_outliers(neg, OUTLIER_PERC)
+        v.append(get_stats(pos))
+        v.append(get_stats(neg))
+        v.append(get_stats(v[2]))
+        v.append(get_stats(v[3]))
+    
+    return pos_results, neg_results, proc_pos, proc_neg, \
+    get_stats(pos_results), get_stats(neg_results), get_stats(proc_pos), get_stats(proc_neg), \
+    monitor_results
+
+def capital_efficiency(output: List[List[OutputTx]], crash_types: List[str], monitors: set[str]
+) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float]],
+    List[Tuple[float, float]], List[Tuple[float, float]], 
+    Dict[str, float], Dict[str, float], Dict[str, float], Dict[str, float], Dict]:
     """
     Measures deviation from market swap rate as function of proportion of output
-    token balance removed
-
-    The ratio internal swap rate / market rate should desireably be near 1 and
-    be as low as possible. It's also expected that as proportionately more of
-    the output token balance is drained, the ratio is higher.
+    token balance removed. Computes <internal exchange rage> / <market rate>.
     
     Parameters:
     1. output: swap metrics
     2. crash_types: what token types crashed in price (are excluded from metrics)
+    3. monitors: tokens or pools to monitor
 
     Returns:
-    1. ratios of internal vs market exchange rate for each swap
-    2. statistics of results
-    3. ratios of internal vs market exchange rate for each swap with outliers removed
-    4. statistics of results with outliers removed
+    1. rate ratios for every swap, when ratios <= 1
+    2. rate ratios for every swap, when ratios > 1
+    3. rate ratios for every swap, when ratios <= 1, outliers removed
+    4. rate ratios for every swap, when ratios > 1, outliers removed
+    5. statistics of swaps when rate ratios <= 1
+    6. statistics of swaps when rate ratios > 1
+    7. statistics of swaps when rate ratios <= 1, outliers removed
+    8. statistics of swaps when rate ratios > 1, outliers removed
+    9. statistics and rate ratios for tokens or pools to be monitored
     """
-    result = []
+    pos_results = []
+    neg_results = []
+    monitor_results = {i : [[],[],[],[]] for i in monitors}
 
     for batch in output:
         for info in batch:
-            if info.outpool_after_val < info.outpool_init_val and \
-                 not info.in_type in crash_types:
-                try:
-                    rate = (info.inpool_after_val - info.inpool_init_val) / \
-                        (info.outpool_init_val - info.outpool_after_val)
-                    drained = 1 - info.outpool_after_val / info.outpool_init_val
-                    result.append([drained, abs(1 - rate / info.market_rate)])
-                except:
-                    continue
+            try:
+                rate = (info.inpool_after_val - info.inpool_init_val) / \
+                    (info.outpool_init_val - info.outpool_after_val)
+                drained = 1 - info.outpool_after_val / info.outpool_init_val
+                rate = rate / info.market_rate
+                result = ([drained, abs(rate)])
+
+                if info.outpool_after_val < info.outpool_init_val and \
+                    not info.in_type in crash_types:
+                    if rate <= 1:
+                        pos_results.append(result)
+                    else:
+                        neg_results.append(result)
+
+                monitor = __match_monitor(info, monitors)
+                if monitor != None:
+                    if rate <= 1:
+                        monitor_results[monitor][0].append(result)
+                    else:
+                        monitor_results[monitor][1].append(result)
+            except ZeroDivisionError:
+                continue
     
-    processed_result = remove_outliers(result, OUTLIER_PERC)
-    return result, get_stats(result), processed_result, get_stats(processed_result)
+    proc_pos = remove_outliers(pos_results, OUTLIER_PERC)
+    proc_neg = remove_outliers(neg_results, OUTLIER_PERC)
+
+    for v in monitor_results.values():
+        pos, neg = v[0], v[1]
+        v[2], v[3] = remove_outliers(pos, OUTLIER_PERC), remove_outliers(neg, OUTLIER_PERC)
+        v.append(get_stats(pos))
+        v.append(get_stats(neg))
+        v.append(get_stats(v[2]))
+        v.append(get_stats(v[3]))
+
+    return pos_results, neg_results, proc_pos, proc_neg, \
+    get_stats(pos_results), get_stats(neg_results), get_stats(proc_pos), get_stats(proc_neg), \
+    monitor_results
 
 def impermanent_loss(initial: PoolStatusInterface, history: List[List[PoolStatusInterface]],
-crash_types: List[str]) -> Tuple[List[float], List[float], Dict[str, float], Dict[str, float],\
-    List[float], List[float], Dict[str, float], Dict[str, float]]:
+crash_types: List[str], monitors: set[str]) -> Tuple[
+    List[Tuple[int, float]], List[Tuple[int, float]], List[Tuple[int, float]], List[Tuple[int, float]],
+    List[Tuple[int, float]], List[Tuple[int, float]], List[Tuple[int, float]], List[Tuple[int, float]],
+    Dict[str, float], Dict[str, float], Dict[str, float], Dict[str, float],
+    Dict[str, float], Dict[str, float], Dict[str, float], Dict[str, float],
+    Dict]:
     """
-    Measures the amount of impermanent loss or gain between batches
+    Measures the amount of impermanent loss or gain with respect to the start. Computes
+    <current token balance> / <starting token balance>.
 
     Parameters:
     1. initial: pool state before any swaps
     2. history: pool state after each transaction
     3. crash_types: what token types crashed in price (are excluded from metrics)
+    4. monitors: tokens or pools to monitor
 
     Returns:
-    1. percentage increases of token balances after each swap (relative to start)
-    2. percentage decreases of token balances after each swap (relative to start)
-    3. statistics on token balance increases
-    4. statistics on token balance decreases
-    5. percentage increases of token balances after each swap (relative to start)
-    with outliers removed
-    6. percentage decreases of token balances after each swap (relative to start)
-    with outliers removed
-    7. statistics on token balance increases with outliers removed
-    8. statistics on token balance decreases with outliers removed
+    1. balance ratios after every swap, when ratios >= 1
+    2. balance ratios after every swap, when ratios < 1
+    3. average balance ratios across all tokens after each swap
+    4. median balance ratio across all tokens after each swap
+    5. balance ratios after every swap, when ratios >= 1, outliers removed
+    6. balance ratios after every swap, when ratios < 1, outliers removed
+    7. average balance ratios across all tokens after each swap, outliers removed
+    8. median balance ratio across all tokens after each swap, outliers removed
+    9. statistics on balance ratios, when ratios >= 1
+    10. statistics on balance ratios, when ratios < 1
+    11. statistics on average balance ratios
+    12. statistics on median balance ratios
+    13. statistics on balance ratios, when ratios >= 1, outliers removed
+    14 statistics on balance ratios, when ratios < 1, outliers removed
+    15. statistics on average balance ratios, outliers removed
+    16. statistics on median balance ratios, outliers removed
+    17. statistics and ratios for tokens or pools to be monitored
     """
     pos_results = []
     neg_results = []
+    averages = []
+    medians = []
+    monitor_results = {i : [[],[],[],[]] for i in monitors}
     swap_counter = 1
 
     for batch in history:
         for status in batch:
+            no_crash_hits = 0
+            avg = 0
+            changes = []
             for token in initial:
+                change = status[token][0] / initial[token][0]
                 if not token in crash_types:
-                    change = status[token][0] / initial[token][0] - 1
-                    if change > 0:
+                    changes.append(change)
+                    avg += change
+                    no_crash_hits += 1
+                    if change >= 1:
                         pos_results.append((swap_counter, abs(change)))
                     else:
-                        neg_results.append((swap_counter, abs(change)))            
+                        neg_results.append((swap_counter, abs(change)))
+                
+                pool = ""
+                if isinstance(token, Tuple):
+                    tok1, tok2 = token[0], token[1]
+                    if tok1 <= tok2:
+                        pool = tok1 + ", " + tok2
+                    else:
+                        pool = tok2 + ", " + tok1
+                
+                found = None
+                if token in monitor_results:
+                    found = token
+                elif pool in monitor_results:
+                    found = pool
+
+                if found != None:
+                    if change >= 1:
+                        monitor_results[found][0].append((swap_counter, abs(change)))
+                    else:
+                        monitor_results[found][1].append((swap_counter, abs(change)))           
+            
+            avg /= no_crash_hits
+            medians.append([swap_counter, statistics.median(changes)])
+            averages.append([swap_counter, avg])
             
             swap_counter += 1
     
-    processed_pos_results = remove_outliers(pos_results, OUTLIER_PERC)
-    processed_neg_results = remove_outliers(neg_results, OUTLIER_PERC)
-    
-    return pos_results, neg_results, get_stats(pos_results), get_stats(neg_results), \
-    processed_pos_results, processed_neg_results, get_stats(processed_pos_results), get_stats(processed_neg_results)
+    proc_pos = remove_outliers(pos_results, OUTLIER_PERC)
+    proc_neg = remove_outliers(neg_results, OUTLIER_PERC)
+    proc_avg = remove_outliers(averages, OUTLIER_PERC)
+    proc_med = remove_outliers(medians, OUTLIER_PERC)
+    for v in monitor_results.values():
+        pos, neg = v[0], v[1]
+        v[2], v[3] = remove_outliers(pos, OUTLIER_PERC), remove_outliers(neg, OUTLIER_PERC)
+        v.append(get_stats(pos))
+        v.append(get_stats(neg))
+        v.append(get_stats(v[2]))
+        v.append(get_stats(v[3]))
+ 
+    return pos_results, neg_results, averages, medians, \
+    proc_pos, proc_neg, proc_avg, proc_med, \
+    get_stats(pos_results), get_stats(neg_results), get_stats(averages), get_stats(medians), \
+    get_stats(proc_pos), get_stats(proc_neg), get_stats(proc_avg), get_stats(proc_med), monitor_results

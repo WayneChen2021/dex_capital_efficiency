@@ -24,7 +24,8 @@ class MarketMakerInterface():
         self.equilibriums = None
 
     def configure_simulation(self, reset_tx: str = "False", arb: str = "True",
-    arb_actions: int = 1, multi_token: str = "True"):
+    arb_actions: int = 1, multi_token: str = "True", k: float = -1, pairwise_monitors = None,
+    multi_monitors = None):
         """
         Configures settings for traffic simulation
 
@@ -33,6 +34,8 @@ class MarketMakerInterface():
         2. arb: whether or not arbitrage opportunities are acted on
         3. arb_actions: how many swaps can occur for one arbitrage opportunity
         4. multi_token: indicates if there are multi token pools
+        5. k: k value for each pool; will default to values from initializer if
+        k = -1
         """
         self.reset_tx = reset_tx == "True"
         self.arb = arb == "True"
@@ -45,6 +48,10 @@ class MarketMakerInterface():
         else:
             self.token_info = PairwiseTokenPoolStatus(self.pairwise_pools, self.pairwise_infos)
             self.equilibriums = deepcopy(self.token_info)
+
+        if k != -1:
+            for v in self.token_info.values():
+                v[-1] = k
     
     def configure_crash_types(self, crash_type: List[str] = []):
         """
@@ -153,14 +160,14 @@ class MarketMakerInterface():
                     reverse_pool[1] += tx.inval
 
             return OutputTx(
-                in_type = tx.intype,
-                out_type = tx.outtype,
-                inpool_init_val = in0,
-                outpool_init_val = out0,
-                inpool_after_val = in0 + tx.inval,
-                outpool_after_val = out0 - out_amt,
-                market_rate = self.prices[tx.outtype] / self.prices[tx.intype],
-                after_rate = 1
+                tx.intype,
+                tx.outtype,
+                in0,
+                out0,
+                in0 + tx.inval,
+                out0 - out_amt,
+                self.prices[tx.outtype] / self.prices[tx.intype],
+                1
             ), deepcopy(self.token_info)
     
     def calculate_equilibriums(self, intype: str, outtype: str) -> Tuple[float, float, float]:

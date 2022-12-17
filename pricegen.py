@@ -29,7 +29,7 @@ class PriceGenerator():
         {
             "LUNA": {
                 "start": 83,
-                "mean": -0.0005,
+                "mean": -0.00075,
                 "stdv": 0.00025,
                 "change_probability": 0.99
             },

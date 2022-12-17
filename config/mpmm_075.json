@@ -1,0 +1,11 @@
+{
+	"type": "MPMM",
+	"simulate_kwargs": {
+		"reset_tx": "False",
+		"arb": "True",
+		"arb_actions": 1,
+		"multi_token": "True",
+		"k": 0.75,
+		"multi_monitors": ["BTC"]
+	  }
+}

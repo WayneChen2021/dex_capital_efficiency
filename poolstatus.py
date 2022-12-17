@@ -1,8 +1,24 @@
 from typing import List, Dict, Tuple
 
-class PoolStatusInterface:
+class PoolStatusInterface():
     def __init__(self):
         raise NotImplementedError
+
+    def pool_value(self, prices: Dict[str, float]) -> float:
+        """
+        Finds worth of al tokens in pool
+
+        Parameters:
+        1. prices: maps tokens to prices
+
+        Returns:
+        1. Value of all tokens in pool
+        """
+        value = 0
+        for tok in self.keys():
+            value += prices[tok]
+        
+        return value
 
 class MultiTokenPoolStatus(PoolStatusInterface, dict):
     def __init__(self, status: Dict[str, Tuple[float, float]]):

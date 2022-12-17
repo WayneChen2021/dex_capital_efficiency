@@ -2,8 +2,8 @@ from typing import List, Tuple
 from imarketmaker import MarketMakerInterface
 from inputtx import InputTx
 from outputtx import OutputTx
-from copy import deepcopy
 from poolstatus import PairwiseTokenPoolStatus
+import json
 
 class PMM(MarketMakerInterface):
     def __init__(self, pairwise_pools: List[Tuple[str, str]],
