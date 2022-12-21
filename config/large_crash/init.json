@@ -1,0 +1,52 @@
+{
+    "initializer": {
+		"init_kwargs": {
+			"constant": 10000000,
+			"cap_limit": 1000000000
+		}, 
+		"token_configs": {
+			"token_infos": {
+				"traffic_gen": {
+					"BNB": {
+						"intype_percent": 0.75,
+						"outtype_percent": 0.1
+					}
+				},
+				"price_gen": {
+					"BTC": {"start": 16588.27},
+					"ETH": {"start": 1170.90},
+					"USDT": {"start": 1},
+					"BNB": {
+						"start": 241.65,
+						"mean": -0.00075,
+						"stdv": 0.00025,
+						"change_probability": 0.99
+					},
+					"USDC": {"start": 1},
+					"XRP": {"start": 0.33},
+					"DAI": {"start": 1},
+					"ADA": {"start": 0.25},
+					"MATIC": {"start": 0.78}
+				}
+			}
+	  	}
+    },
+    "traffic": {
+        "init_kwargs": {
+            "sigma": 5000,
+			"mean": 10000,
+			"arb_probability": 0.1,
+			"shape": [10000, 20],
+			"max_price": 100000,
+			"is_norm": "True"
+        }
+    },
+    "price_gen": {
+        "init_kwargs": {
+			"mean": 0,
+			"stdv": 0.001,
+			"change_probability": 0.95,
+			"batches": 10000
+        }
+    }
+}

@@ -21,8 +21,8 @@ labels = {
 }
 
 pretty_market = {
-    "double_price_crash": "two token crash",
-    "single_price_crash": "single token crash",
+    "large_crash": "expensive token crash",
+    "stable_crash": "stablecoin crash",
     "random": "regular market",
     "volatile_price": "volatile market"
 }
@@ -268,7 +268,7 @@ def simulate(config: Dict,
         plt.yscale("log")
         plt.legend(loc='best')
         plt.tight_layout()
-        plt.savefig('{}/images/{}/price_imp/{}.png'.format(run_dir, market, mm_name))
+        plt.savefig('{}/images/{}/price_imp/{}.png'.format(run_dir, market, mm_name), bbox_inches='tight')
         plt.clf()
         
         combined = proc_pos_pri + proc_neg_pri
@@ -282,7 +282,7 @@ def simulate(config: Dict,
         plt.yscale("log")
         plt.legend(loc='best')
         plt.tight_layout()
-        plt.savefig('{}/images/{}/price_imp/proc_{}.png'.format(run_dir, market, mm_name))
+        plt.savefig('{}/images/{}/price_imp/proc_{}.png'.format(run_dir, market, mm_name), bbox_inches='tight')
         plt.clf()
         
         # capital efficiency
@@ -297,7 +297,7 @@ def simulate(config: Dict,
         plt.yscale("log")
         plt.legend(loc='best')
         plt.tight_layout()
-        plt.savefig('{}/images/{}/cap_eff/{}.png'.format(run_dir, market, mm_name))
+        plt.savefig('{}/images/{}/cap_eff/{}.png'.format(run_dir, market, mm_name), bbox_inches='tight')
         plt.clf()
         
         combined = proc_pos_cap + proc_neg_cap
@@ -311,7 +311,7 @@ def simulate(config: Dict,
         plt.yscale("log")
         plt.legend(loc='best')
         plt.tight_layout()
-        plt.savefig('{}/images/{}/cap_eff/proc_{}.png'.format(run_dir, market, mm_name))
+        plt.savefig('{}/images/{}/cap_eff/proc_{}.png'.format(run_dir, market, mm_name), bbox_inches='tight')
         plt.clf()
         
         # impermanent loss
@@ -328,7 +328,7 @@ def simulate(config: Dict,
         plt.yscale("log")
         plt.legend(loc='best')
         plt.tight_layout()
-        plt.savefig('{}/images/{}/imp/{}.png'.format(run_dir, market, mm_name))
+        plt.savefig('{}/images/{}/imp/{}.png'.format(run_dir, market, mm_name), bbox_inches='tight')
         plt.clf()
         
         combined = proc_imp_gain + proc_imp_loss
@@ -344,7 +344,7 @@ def simulate(config: Dict,
         plt.yscale("log")
         plt.legend(loc='best')
         plt.tight_layout()
-        plt.savefig('{}/images/{}/imp/proc_{}.png'.format(run_dir, market, mm_name))
+        plt.savefig('{}/images/{}/imp/proc_{}.png'.format(run_dir, market, mm_name), bbox_inches='tight')
         plt.clf()
 
     if save_data:
@@ -467,42 +467,3 @@ if __name__ == '__main__':
                 if not save_generated:
                     os.remove(price_dir)
                     os.remove(traffic_dir)
-
-        # if save_images:
-        #     for market in stat_dir_dict:
-        #         for metric in metric_types:
-        #             boxes = []
-        #             stats_dir = stat_dir_dict[market]
-        #             for mm in os.listdir(stats_dir):
-        #                 with open(os.path.join(stats_dir, mm), "r") as f:
-        #                     all_info = json.loads(f.read())
-                        
-        #                 if len(all_info) and metric in all_info:
-        #                     info = all_info[metric]
-        #                     if len(info):
-        #                         if not("c" in mm and ("cap" in metric or "price" in metric)):
-        #                             boxes.append({
-        #                                 'label' : mm[:-5].replace("_0", ", k=0."),
-        #                                 'whislo': info["quart_1"],
-        #                                 'q1'    : info["quart_1"],
-        #                                 'med'   : info["med"],
-        #                                 'q3'    : info["quart_3"],
-        #                                 'whishi': info["max"],
-        #                                 'fliers': [] 
-        #                             })
-                    
-        #             data_type = "raw"
-        #             if "proc" in metric:
-        #                 data_type = "processed"
-        #             save_dir = "{}/run_{}/images/{}/{}/aggregated_{}.png".format(
-        #                 base_dir, i, market, metric.replace("proc_", ""), metric)
-
-        #             _, ax = plt.subplots()
-        #             ax.bxp(boxes, vert=False, showfliers=False, patch_artist=True)
-        #             ax.set_title("run {}, {}: {} {}".format(i, pretty_market[market], data_type, metric))
-        #             ax.set_xlabel(pretty_xlabel[metric])
-        #             ax.set_ylabel("market makers")
-        #             ax.set_xscale("log")
-        #             plt.tight_layout()
-        #             plt.savefig(save_dir)
-        #             plt.close()

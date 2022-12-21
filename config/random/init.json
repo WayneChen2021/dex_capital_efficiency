@@ -1,23 +1,22 @@
 {
     "initializer": {
 		"init_kwargs": {
-			"constant": 100000,
+			"constant": 10000000,
 			"cap_limit": 1000000000
 		}, 
 		"token_configs": {
 			"token_infos": {
 				"traffic_gen": {},
 				"price_gen": {
-					"BTC": {"start": 16872.64},
-					"ETH": {"start": 1233.67},
+					"BTC": {"start": 16588.27},
+					"ETH": {"start": 1170.90},
 					"USDT": {"start": 1},
-					"BNB": {"start": 284.12},
+					"BNB": {"start": 241.65},
 					"USDC": {"start": 1},
-					"BUSDC": {"start": 1},
-					"XRP": {"start": 0.3857},
-					"DOGE": {"start": 0.09603},
-					"UST": {"start": 1},
-					"LUNA": {"start": 83}
+					"XRP": {"start": 0.33},
+					"DAI": {"start": 1},
+					"ADA": {"start": 0.25},
+					"MATIC": {"start": 0.78}
 				}
 			}
 	  	}
