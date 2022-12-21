@@ -55,16 +55,16 @@ note: This is a continuation of a group project from summer 2022, and I am now w
 2. Modifiy the config JSONs for each market maker type. They follow this form:
 ```json
 {
-	"type": "market maker type",
-	"simulate_kwargs": {
-		"reset_tx": "// 'True' if pools are reset after each transaction",
-		"arb": "// 'True' if intentional arbitrage swaps will be performed",
-		"arb_actions": "// number of arbitrage swaps by each intentional arbitrage action",
-		"multi_token": "// 'True' if the market maker does not have pairwise token pools",
-		"k": "// '-1' if k values for pools are set randomly; else all pools get this k value",
-		"pairwise_monitors": "// pairwise token pools to monitor (displays in graphs), optional entry",
+    "type": "market maker type",
+    "simulate_kwargs": {
+        "reset_tx": "// 'True' if pools are reset after each transaction",
+        "arb": "// 'True' if intentional arbitrage swaps will be performed",
+        "arb_actions": "// number of arbitrage swaps by each intentional arbitrage action",
+        "multi_token": "// 'True' if the market maker does not have pairwise token pools",
+        "k": "// '-1' if k values for pools are set randomly; else all pools get this k value",
+        "pairwise_monitors": "// pairwise token pools to monitor (displays in graphs), optional entry",
         "multi_monitors": "// token types to monitor (displays in graphs), optional entry"
-	  }
+    }
 }
 ```
 
