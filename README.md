@@ -175,7 +175,7 @@ Because price impact is a measure of how much exchange rates change between swap
 We will only be looking at when impermanent *loss* occurs. The impermanent results were from the "random market" simulation, though the "volatile market" case will lead to similar conclusions. Values were calculated by dividing the token's balance in the pool after each swap by the starting balance. Note that this was done for every token in every pool (i.e. if there was a BTC, USD pool and BTC, ETH pool, there would be 2 values for BTC).
 
 | market maker | median | standard deviation | minimum | counts |
-| --- | --- | --- | --- |
+| --- | --- | --- | --- | --- |
 | AMM | 0.9484311288 | 0.0495794958 | 0.7629775000 | 7198418 |
 | CSMM | 0.8767590539 | 0.1405276729 | 0.1985908067 | 6503865 |
 | PMM, k = 0.05 | 0.9958689495 | 0.0039524474 | 0.9610291320 | 7329100 |
