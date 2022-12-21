@@ -74,7 +74,7 @@ note: This is a continuation of a group project from summer 2022, and I am now w
 
 The proactive market maker, or PMM, was first implemented by [DODO Exchange](https://docs.dodoex.io/english/dodo-academy/pmm-overview/the-mathematical-principle-of-pmm). PMM generalizes the commonly used constant product market maker by introducing a parameter $k$ to change the "flatness" of the pricing curve. PMM also splits the price curve into 2 (that is, it is described by 2 functions joined at an intersection point). Coupled with access to a price oracle, this gave the market maker several novel features:
 
-1. Can change the pricing curve's "slope" to increase capital efficiency ($k$ near 0) or to counter volatility ($k$ near 1); $k = 1$ results in the constant product curve
+1. Can change the pricing curve's "slope" to increase capital efficiency (k near 0) or to counter volatility (k near 1); $k = 1$ results in the constant product curve
 2. Can set an equilibrium pool state where the exchange rate matches the market rate (i.e. the rate derived from dividing the prices of 2 tokens), thus ensuring most swaps happen near market rates
 3. Can change the equilibrium point depending on the current pool balances and market exchange rate to reduce impermanent loss
 4. Single token type deposits for liquidity providers enabled by splitting of the price curve
