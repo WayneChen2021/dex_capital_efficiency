@@ -1,6 +1,6 @@
 # multi-token-proactive-market-maker
 
-note: This is a continuation of a group project from summer 2022, and I am now working on it by myself
+I'd like to thank Stanley Jiang, Krishna Palempalli, Michael Mirkin, Fan Zhang, Bineet Mishra, Weizhao Tang, Haoqian Zhang, and Marwa Mouallem for writing parts of the simulation code, and Preston Rozwood and Songwei Chen for contributing to the Arxiv preprint. Additionally, I want to thank the Initiative for Cryptocurrencies and Contracts for allowing us to present our initial findings.
 
 ## Running the code
 
