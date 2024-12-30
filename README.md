@@ -4,7 +4,9 @@ I'd like to thank Stanley Jiang, Krishna Palempalli, Michael Mirkin, Fan Zhang, 
 
 ## Running the code
 
-1. Modify the config JSONs inside the folders for each market type. They follow this form:
+1. Create conda environment: `conda create -n mpmm python=3.10`
+2. Download dependencides: `conda activate mpmm; pip install -r requirements.txt`
+3. Modify the config JSONs inside the folders for each market type. They follow this form:
 ```json
 {
     "initializer": {
@@ -52,7 +54,7 @@ I'd like to thank Stanley Jiang, Krishna Palempalli, Michael Mirkin, Fan Zhang, 
 }
 ```
 
-2. Modifiy the config JSONs for each market maker type. They follow this form:
+4. Modifiy the config JSONs for each market maker type. They follow this form:
 ```json
 {
     "type": "market maker type",
@@ -68,7 +70,7 @@ I'd like to thank Stanley Jiang, Krishna Palempalli, Michael Mirkin, Fan Zhang, 
 }
 ```
 
-3. ```python simulator.py```
+5. ```python simulator.py```
 
 ## Multi-token proactive market maker
 

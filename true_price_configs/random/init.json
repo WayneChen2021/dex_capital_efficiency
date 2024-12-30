@@ -1,0 +1,78 @@
+{
+	"initializer": {
+		"init_kwargs": {
+			"constant": 10000000,
+			"cap_limit": 1000000000
+		},
+		"token_configs": {
+			"token_infos": {
+				"traffic_gen": {},
+				"price_gen": {
+					"AAVE": {
+						"start": 360.49
+					},
+					"BTC": {
+						"start": 57454.76
+					},
+					"ADA": {
+						"start": 1.21
+					},
+					"LINK": {
+						"start": 31.97
+					},
+					"DOGE": {
+						"start": 0.06
+					},
+					"EOS": {
+						"start": 6.24
+					},
+					"ETH": {
+						"start": 2029.32
+					},
+					"LTC": {
+						"start": 223.53
+					},
+					"DOT": {
+						"start": 40.21
+					},
+					"XLM": {
+						"start": 0.48
+					},
+					"USDT": {
+						"start": 1.0
+					},
+					"UNI": {
+						"start": 29.62
+					},
+					"USDC": {
+						"start": 1.0
+					},
+					"XRP": {
+						"start": 0.96
+					}
+				}
+			}
+		}
+	},
+	"traffic": {
+		"init_kwargs": {
+			"sigma": 5000,
+			"mean": 10000,
+			"arb_probability": 0.75,
+			"shape": [
+				10000,
+				20
+			],
+			"max_price": 100000,
+			"is_norm": "True"
+		}
+	},
+	"price_gen": {
+		"init_kwargs": {
+			"mean": 0,
+			"stdv": 0.001,
+			"change_probability": 0.95,
+			"batches": 10000
+		}
+	}
+}

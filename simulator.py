@@ -4,8 +4,12 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import json
+import pandas as pd
 from typing import Tuple, Dict, List
 from copy import deepcopy
+from collections import OrderedDict
+from argparse import ArgumentParser
+from datetime import datetime
 
 import marketmakers
 import metrics
@@ -36,7 +40,7 @@ stat_groups = {
 data_formats = ["images", "stats", "raw_data"]
 metric_types = ["price_imp", "cap_eff", "imp"]
 
-def initialize_simulation(config: Dict) -> Tuple[List[Tuple[str, str]], List[Tuple[float, float, float]],
+def initialize_simulation(config: Dict, load_true_data: bool = False, load_true_txs: bool = False) -> Tuple[List[Tuple[str, str]], List[Tuple[float, float, float]],
     List[str], List[Tuple[float, float]],
     Dict[str, Dict[str, float]], Dict[str, Dict[str, float]],
     List[str], float,
@@ -71,24 +75,43 @@ def initialize_simulation(config: Dict) -> Tuple[List[Tuple[str, str]], List[Tup
     traffic_generator = TrafficGenerator(**config['traffic']['init_kwargs'])
     traffic_generator.configure_tokens(single_pools, traffic_info, cap_limit)
 
-    price_generator = PriceGenerator(**config['price_gen']['init_kwargs'])
-    price_generator.configure_tokens(price_gen_info)
-
     # generate prices, traffic and store in files
     price_dir = os.path.join(run_dir, market + "_price.obj")
-    ext_prices = price_generator.simulate_ext_prices()
+    if not load_true_data:
+        price_generator = PriceGenerator(**config['price_gen']['init_kwargs'])
+        price_generator.configure_tokens(price_gen_info)
+
+        ext_prices = price_generator.simulate_ext_prices()
+    else:
+        timestamps_to_info = OrderedDict()
+        coins_df = pd.read_csv('true_data/coins.csv')
+        ids_to_symbols = {int(row['id']) : row['Symbol'] for _, row in coins_df.iterrows()}
+
+        for csv_path in os.listdir('true_data/hourly_prices'):
+            symbol = ids_to_symbols[int(csv_path[: csv_path.index('_')])]
+            coin_df = pd.read_csv(f'true_data/hourly_prices/{csv_path}')
+            
+            for _, row in coin_df.iterrows():
+                timestamp = f"{row['Date']} {row['Time']}"
+                if not timestamp in timestamps_to_info:
+                    timestamps_to_info[timestamp] = {symbol: float(row['Open'])}
+                else:
+                    timestamps_to_info[timestamp][symbol] = float(row['Open'])
+        
+        ext_prices: List[Tuple[datetime, Dict[str, float]]] = [(datetime.strptime(dt, '%Y-%m-%d %H:%M:%S'), infos) for dt, infos in timestamps_to_info.items()]
+
     f = open(price_dir, "wb")
-    pickle.dump(ext_prices, f)
-    f.close()
+    pickle.dump(list(timestamps_to_info.values()), f)
+    f.close()         
     
     traffic_dir = os.path.join(run_dir, market + "_traffic.obj")
-    traffics = traffic_generator.generate_traffic(ext_prices)
+    traffics = traffic_generator.generate_traffic(ext_prices, load_true_txs)
     f = open(traffic_dir, "wb")
     pickle.dump(traffics, f)
     f.close()
     
     return pairwise_pools, pairwise_infos, single_pools, single_infos, traffic_info, price_gen_info, \
-    crash_types, cap_limit, ext_prices, traffics, price_dir, traffic_dir
+    crash_types, cap_limit, list(timestamps_to_info.values()), traffics, price_dir, traffic_dir
 
 def __pack_data(stat: str, raw: List, processed: List, monitors: Dict) -> Dict:
     """
@@ -106,9 +129,12 @@ def __pack_data(stat: str, raw: List, processed: List, monitors: Dict) -> Dict:
     dictionary =  {
         stat_groups[stat][i] : {"raw": raw[i], "processed": processed[i]} for i in range(len(raw))
     }
-    dictionary["m"] = {
-        i : {"raw": raw[i], "processed": processed[i]} for i in monitors
-    }
+    try:
+        dictionary["m"] = {
+            i : {"raw": raw[i], "processed": processed[i]} for i in monitors
+        }
+    except Exception as e:
+        import pdb; pdb.set_trace()
     return dictionary
 
 def simulate(config: Dict, 
@@ -389,6 +415,12 @@ def yes_no(query: str) -> bool:
             return output == 'Y'
 
 if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument('--configs_path', type=str, required=True)
+    parser.add_argument('--existing_prices', action='store_true')
+    parser.add_argument('--existing_txs', action='store_true')
+    args = parser.parse_args()
+
     while True:
         try:
             runs = int(input("number of simulation runs: "))
@@ -422,7 +454,7 @@ if __name__ == '__main__':
                     os.mkdir(combined_dir)
                 
                 if dir != "stats":
-                    for market in os.listdir("config"):
+                    for market in os.listdir(args.configs_path):
                         if not "json" in market:
                             market_dir = os.path.join(combined_dir, market)
                             if not os.path.exists(market_dir):
@@ -434,26 +466,26 @@ if __name__ == '__main__':
                                     os.mkdir(stat_dir)
 
                 else:
-                    for market in os.listdir("config"):
+                    for market in os.listdir(args.configs_path):
                         if not "json" in market:
                             market_dir = os.path.join(combined_dir, market)
                             if not os.path.exists(market_dir):
                                 stat_dir_dict[market] = market_dir
                                 os.mkdir(market_dir)         
         
-        for market in os.listdir("config"):
+        for market in os.listdir(args.configs_path):
             if not "json" in market:
-                market_path = os.path.join("config", market)
+                market_path = os.path.join(args.configs_path, market)
                 with open(os.path.join(market_path, "init.json"), 'r') as f:
                     config = json.load(f)
                 pairwise_pools, pairwise_infos, single_pools, single_infos, traffic_info, \
                 price_gen_info, crash_types, cap_limit, ext_prices, traffics, \
-                price_dir, traffic_dir = initialize_simulation(config)
+                price_dir, traffic_dir = initialize_simulation(config, args.existing_prices, args.existing_txs)
                
-                for mm in os.listdir("config"):
+                for mm in os.listdir(args.configs_path):
                     if "json" in mm:
                         mm_name = mm[:-5]
-                        with open(os.path.join("config", mm), 'r') as f:
+                        with open(os.path.join(args.configs_path, mm), 'r') as f:
                             config = json.load(f)
 
                         simulate(

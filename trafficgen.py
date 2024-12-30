@@ -1,7 +1,10 @@
 import numpy as np
 import random
+import os
+import pandas as pd
 from typing import List, Tuple, Dict
 from inputtx import InputTx
+from datetime import datetime, timedelta
 
 class TrafficGenerator():
     def __init__(self, sigma: float, mean: float, arb_probability: float, shape: Tuple[int, int],
@@ -125,6 +128,7 @@ class TrafficGenerator():
         
         market_cap = self.cap_limit * token_infos[intype][0]
         if token_infos[intype][1] * price > market_cap:
+            print('traced')
             return 0
         return amt_dols / price
     
@@ -143,7 +147,7 @@ class TrafficGenerator():
         
         return intype, outtype
 
-    def generate_traffic(self, prices: List[Dict[str, float]]) -> List[List[InputTx]]:
+    def generate_traffic(self, prices: List[Tuple[datetime, Dict[str, float]]], load_true_data: bool = False) -> List[List[InputTx]]:
         """
         Generates traffic
 
@@ -157,23 +161,66 @@ class TrafficGenerator():
         Returns:
         1. list of batches of swaps
         """
-        txs = []
-        choices = [0,1]
-        token_infos = {tok: [1,0] for tok in prices[0]}
-        for batch in range(self.batches):
-            batch_txs = []
-            for tx in range(self.batch_size):
-                amt = 0
-                while amt == 0:
-                    intype, outtype = self.__get_pair()
-                    token_infos[intype][0] = prices[batch][intype] / prices[0][intype]
-                    amt = self.__get_amt(intype, prices[batch][intype], token_infos)
-                
-                arb = random.choices(choices, self.arb_probability) == [1]
-                batch_txs.append(InputTx(intype, outtype, amt, arb))               
-                token_infos[intype][1] += amt
-                token_infos[outtype][1] -= amt * prices[batch][intype] / prices[batch][outtype]
+        def sample_token(token_probs: Dict[str, float]):
+            in_out_pairs = []
+            weights = []
+            for tok_1 in token_probs.keys():
+                for tok_2 in token_probs.keys():
+                    if tok_1 != tok_2:
+                        in_out_pairs.append((tok_1, tok_2))
+                        weights.append(token_probs[tok_1] * token_probs[tok_2])
 
-            txs.append(batch_txs)
-        
+            in_type, out_type = random.choices(in_out_pairs, weights, k=1)[0]
+            
+            return in_type, out_type
+
+        txs = []
+        if not load_true_data:
+            choices = [0,1]
+            prices = [tup[1] for tup in prices]
+            token_infos = {tok: [1,0] for tok in prices[0]}
+            for batch in range(self.batches):
+                batch_txs = []
+                for tx in range(self.batch_size):
+                    amt = 0
+                    while amt == 0:
+                        intype, outtype = self.__get_pair()
+                        token_infos[intype][0] = prices[batch][intype] / prices[0][intype]
+                        amt = self.__get_amt(intype, prices[batch][intype], token_infos)
+                    
+                    arb = random.choices(choices, self.arb_probability) == [1]
+                    batch_txs.append(InputTx(intype, outtype, amt, arb))               
+                    token_infos[intype][1] += amt
+                    token_infos[outtype][1] -= amt * prices[batch][intype] / prices[batch][outtype]
+
+                txs.append(batch_txs)
+        else:
+            timestamp_strings_to_volumes = {}
+            for volume_csv in os.listdir('true_data/daily_volumes'):
+                ticker = volume_csv[: volume_csv.index('-')].upper()
+                volumes = pd.read_csv(f'true_data/daily_volumes/{volume_csv}')
+                for _, row in volumes.iterrows():
+                    timestmap_string = str((datetime.strptime(row['snapped_at'][: -4], '%Y-%m-%d %H:%M:%S') + timedelta(days=1)).date())
+                    if not timestmap_string in timestamp_strings_to_volumes:
+                        timestamp_strings_to_volumes[timestmap_string] = {ticker: float(row['total_volume'])}
+                    else:
+                        timestamp_strings_to_volumes[timestmap_string][ticker] = float(row['total_volume'])
+            
+            for idx, (timestamp, price_infos) in enumerate(prices):
+                volume = timestamp_strings_to_volumes[str(timestamp.date())]
+                token_in_amounts = {}
+                token_out_amounts = {}
+                batch_txs = []
+                for _ in range(self.batch_size):
+                    in_type, out_type = sample_token(volume)
+                    sampled_amt = np.random.normal(self.mean, self.sigma)
+                    amt = float(np.clip(sampled_amt, 0, self.max_price) / price_infos[in_type])
+                    batch_txs.append(InputTx(in_type, out_type, amt, random.choices([0, 1], self.arb_probability) == [1]))
+
+                    token_in_amounts[in_type] = amt if not in_type in token_in_amounts else amt + token_in_amounts[in_type]
+                    token_out_amounts[out_type] = amt if not out_type in token_out_amounts else amt + token_out_amounts[out_type]
+
+                txs.append(batch_txs)
+                # import pdb; pdb.set_trace()
+
         return txs

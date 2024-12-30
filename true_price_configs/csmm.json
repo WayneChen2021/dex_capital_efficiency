@@ -1,0 +1,11 @@
+{
+	"type": "CSMM",
+	"simulate_kwargs": {
+		"reset_tx": "False",
+		"arb": "True",
+		"arb_actions": 1,
+		"multi_token": "False",
+		"k": -1,
+		"pairwise_monitors": [["BTC", "ETH"]]
+	  }
+}
